@@ -1,0 +1,123 @@
+swarm:
+  name: "yconic-agent-swarm"
+  max_concurrent_agents: 5
+  default_model: "llama3:8b"
+  ollama_base_url: "http://localhost:11434"
+  max_retries: 3
+  task_timeout_seconds: 600
+  memory:
+    episodic_retention_days: 30
+    semantic_top_k: 10
+    knowledge_min_confidence: 0.7
+
+agents:
+  - name: planner
+    role: planner
+    model: "llama3:8b"
+    strategy: PlanAndExecute
+    tools:
+      - vector_search
+      - memory_retrieve_episodes
+    max_retries: 2
+
+  - name: coder
+    role: coder
+    model: "llama3:8b"
+    strategy: ReAct
+    tools:
+      - bash
+      - read_file
+      - write_file
+      - python_repl
+      - calculator
+    max_retries: 3
+
+  - name: researcher
+    role: researcher
+    model: "llama3:8b"
+    strategy: ReAct
+    tools:
+      - web_search
+      - url_fetch
+      - vector_search
+      - calculator
+    max_retries: 2
+
+  - name: reviewer
+    role: reviewer
+    model: "llama3:8b"
+    strategy: CoT
+    tools:
+      - read_file
+      - bash
+      - vector_search
+    max_retries: 2
+
+  - name: synthesizer
+    role: synthesizer
+    model: "llama3:8b"
+    strategy: ToT
+    tools:
+      - vector_search
+      - memory_retrieve_episodes
+    max_retries: 2
+
+  - name: meta_learner
+    role: meta_learner
+    model: "llama3:8b"
+    strategy: PlanAndExecute
+    tools:
+      - memory_retrieve_episodes
+      - memory_store_skill
+      - memory_store_knowledge
+      - memory_consolidate
+      - vector_search
+    max_retries: 1
+
+tools:
+  bash:
+    enabled: true
+    allowed_commands:
+      - "python"
+      - "pytest"
+      - "git"
+      - "ruff"
+      - "ruff format"
+      - "ruff check"
+      - "pip"
+      - "npm"
+    denied_patterns:
+      - "rm -rf /"
+      - "rm -rf ~"
+      - "dd if="
+      - ":(){ :|:& };:"
+      - "curl.*|bash"
+      - "wget.*|bash"
+    timeout_seconds: 60
+
+  python_repl:
+    enabled: true
+    timeout_seconds: 30
+    max_output_lines: 100
+    allowed_modules:
+      - "math"
+      - "re"
+      - "json"
+      - "csv"
+      - "datetime"
+      - "collections"
+      - "itertools"
+      - "functools"
+      - "typing"
+      - "pathlib"
+
+  web_search:
+    enabled: true
+    rate_limit_per_minute: 30
+    max_results: 10
+    timeout_seconds: 30
+
+  url_fetch:
+    enabled: true
+    timeout_seconds: 15
+    max_content_length: 50000

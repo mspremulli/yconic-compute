@@ -1,0 +1,26 @@
+memory:
+  episodic:
+    retention_days: 30
+    importance_threshold: 5
+    auto_archive: true
+    consolidation_interval_hours: 24
+
+  semantic:
+    embedding_model: "nomic-embed-text:latest"
+    top_k: 10
+    similarity_threshold: 0.7
+    batch_size: 100
+
+  long_term:
+    min_confidence: 0.7
+    deduplication: true
+    deduplication_similarity: 0.85
+
+  skill:
+    success_rate_weight: 0.7
+    min_use_count_for_update: 3
+    decay_factor: 0.95
+
+  working:
+    max_size_mb: 100
+    eviction_policy: "lru"
